@@ -82,28 +82,33 @@ module Fluent
       end
 
       def shutdown
+        p(here: "event_loop: running shutdown") if @now_debugging
         @_event_loop_mutex.synchronize do
           @_event_loop_attached_watchers.reverse.each do |w|
             if w.attached?
               begin
                 w.detach
               rescue => e
+                p(here: "event_loop: rescue in shutdown", error: e.class, message: e.message)
                 log.warn "unexpected error while detaching event loop watcher", error: e
               end
             end
           end
         end
         timeout_at = Fluent::Clock.now + EVENT_LOOP_SHUTDOWN_TIMEOUT
+        p(here: "event_loop: still running shutdown") if @now_debugging
         while @_event_loop_running
           if Fluent::Clock.now >= timeout_at
+            p(here: "event_loop: shutdown timeout while waiting event loop")
             log.warn "event loop does NOT exit until hard timeout."
             raise "event loop does NOT exit until hard timeout." if @under_plugin_development
             break
           end
           sleep 0.1
         end
-
+        p(here: "event_loop: calling super in shutdown") if @now_debugging
         super
+        p(here: "event_loop: ran shutdown") if @now_debugging
       end
 
       def close

@@ -217,6 +217,12 @@ module Fluent::Plugin
       end
     end
 
+    def shutdown
+      p(here: "out_forward: running shutdown", ancestors: self.singleton_class.ancestors) if @now_debugging
+      super
+      p(here: "out_forward: ran shutdown", shutdown: self.shutdown?) if @now_debugging
+    end
+
     def close
       @usock.close if @usock
       super

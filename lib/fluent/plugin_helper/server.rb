@@ -218,11 +218,13 @@ module Fluent
       end
 
       def shutdown
+        p(here: "server: running shutdown") if @now_debugging
         @_server_connections.each do |conn|
           conn.close rescue nil
         end
-
+        p(here: "server: calling super") if @now_debugging
         super
+        p(here: "server: ran shutdown") if @now_debugging
       end
 
       def terminate
